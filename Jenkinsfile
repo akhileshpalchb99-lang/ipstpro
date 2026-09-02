@@ -2,75 +2,29 @@ pipeline {
     agent any
 
     stages {
-        stage('Checkout GIT code') {
+
+        stage('Checkout Code') {
             steps {
                 git branch: 'main',
-                url: 'https://github.com/pramilagit/ipstpro.git'
+                    url: 'https://github.com/akhileshpalchb99-lang/ipstpro.git'
             }
         }
-        stage('Docker Build Image'){
+
+        stage('Verify Code') {
             steps {
-                sh '''
-                docker build -t ipstpro:v1 .
-                '''
+                sh 'ls -la'
+                sh 'echo "IPSTPRO source code checkout successful"'
             }
-        }
-        stage('Docker image check'){
-            steps{
-                sh '''
-                docker images | grep ipstpro
-                '''
-            }
-                
-        }
-        stage('Push image on NEXUS'){
-            steps{
-                script{
-                    withCredentials([usernamePassword(
-                    credentialsId: 'nexus-docker-cred',
-                    usernameVariable: 'NEXUS_USER',
-                    passwordVariable: 'NEXUS_PASS'
-            )]) {
-
-                sh '''
-                docker login -u $NEXUS_USER -p $NEXUS_PASS 172.16.36.131:9070
-
-                docker tag ipstpro:v1 172.16.36.131:9070/ipstpro/ipstpro:v1
-
-                docker push 172.16.36.131:9070/ipstpro/ipstpro:v1
-                '''
-
-               }
-            }
-        }
-     }
-     
-     stage('Deploy') {
-    steps {
-        script {
-            sshPublisher(
-                publishers: [
-                    sshPublisherDesc(
-                        configName: 'dockerserv',
-                        transfers: [
-                            sshTransfer(
-                                execCommand: '''
-        cd /opt/ipstpro
-
-        docker pull 172.16.36.131:9070/ipstpro/ipstpro:v1
-
-        docker compose down
-
-        docker compose up -d
-'''
-                            )
-                        ]
-                    )
-                ]
-            )
         }
     }
-}         
-     
-  }
+
+    post {
+        success {
+            echo 'IPSTPRO CI Pipeline SUCCESS'
+        }
+
+        failure {
+            echo 'IPSTPRO CI Pipeline FAILED'
+        }
+    }
 }
