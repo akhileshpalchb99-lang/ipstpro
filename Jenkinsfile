@@ -3,28 +3,39 @@ pipeline {
 
     stages {
 
-        stage('Checkout Code') {
+        stage('Checkout GIT Code') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/akhileshpalchb99-lang/ipstpro.git'
+                    url: 'https://github.com/pramilagit/ipstpro.git'
             }
         }
 
         stage('Verify Code') {
             steps {
                 sh 'ls -la'
-                sh 'echo "IPSTPRO source code checkout successful"'
+            }
+        }
+
+        stage('Docker Build Image') {
+            steps {
+                sh 'docker build -t ipstpro:v1 .'
+            }
+        }
+
+        stage('Docker Image Check') {
+            steps {
+                sh 'docker images | grep ipstpro'
             }
         }
     }
 
     post {
         success {
-            echo 'IPSTPRO CI Pipeline SUCCESS'
+            echo 'IPSTPRO Docker Build SUCCESS'
         }
 
         failure {
-            echo 'IPSTPRO CI Pipeline FAILED'
+            echo 'IPSTPRO Docker Build FAILED'
         }
     }
 }
